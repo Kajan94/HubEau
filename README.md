@@ -12,6 +12,12 @@ Application Flask réalisée en équipe. Elle réunit **un tableau qui interroge
 
 Si l’API est indisponible, l’interface du tableau propose de réessayer. La carte utilise sa propre source de données.
 
+## Parcours des données de la carte
+
+Le script `prepare_data.py` extrait la base SQLite de l’archive du projet. La sélection d’un département récupère les communes enregistrées dans SQLite. La sélection d’une commune affiche ses réseaux de distribution. Les mesures du tableau viennent de l’API Hub’Eau via un parcours séparé.
+
+![Parcours illustré de la carte de réseaux avec des données fictives](docs/parcours-carte-reseaux.png)
+
 ## Démarrer en local
 
 Prérequis : Python 3.12 ou 3.14 et un accès réseau pour le tableau. Créer puis activer un environnement virtuel avec `python -m venv .venv`. Sous PowerShell, utiliser `.\.venv\Scripts\Activate.ps1`. Sous macOS ou Linux, utiliser `source .venv/bin/activate`.
@@ -24,4 +30,4 @@ python -m flask --app app run
 
 Ouvrir [localhost:5000](http://127.0.0.1:5000/). Le script de préparation extrait la base SQLite et le logo depuis `site-HubEau.zip`. Les modules `controller/` organisent les routes, et `model/` sépare l’accès SQLite et l’appel HTTP.
 
-[Documentation de l’API Qualité de l’eau potable](https://hubeau.eaufrance.fr/page/api-qualite-eau-potable) · [Portfolio](https://kajan94.github.io/#hubeau)
+[Documentation de l’API Qualité de l’eau potable](https://hubeau.eaufrance.fr/page/api-qualite-eau-potable) · [Portfolio](https://kajan94.github.io/Portefolio/#hubeau)
