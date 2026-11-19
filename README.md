@@ -20,13 +20,22 @@ Le script `prepare_data.py` extrait la base SQLite de l’archive du projet. La 
 
 ## Démarrer en local
 
-Prérequis : Python 3.12 ou 3.14 et un accès réseau pour le tableau. Créer puis activer un environnement virtuel avec `python -m venv .venv`. Sous PowerShell, utiliser `.\.venv\Scripts\Activate.ps1`. Sous macOS ou Linux, utiliser `source .venv/bin/activate`.
+Prérequis : Python 3.12 ou 3.14 avec pip et un accès réseau pour le tableau. Ouvrir un terminal à la racine du dépôt.
+
+### Bibliothèques Python
+
+- **Flask 3.1.3** : application web.
+- **requests 2.34.2** : appels HTTP à l’API Hub’Eau.
+
+Installer les bibliothèques et lancer l’application :
 
 ~~~sh
 python -m pip install -r requirements.txt
 python prepare_data.py
 python -m flask --app app run
 ~~~
+
+Sur macOS ou Linux, utiliser `python3` à la place de `python` si nécessaire.
 
 Ouvrir [localhost:5000](http://127.0.0.1:5000/). Le script de préparation extrait la base SQLite et le logo depuis `site-HubEau.zip`. Les modules `controller/` organisent les routes, et `model/` sépare l’accès SQLite et l’appel HTTP.
 
