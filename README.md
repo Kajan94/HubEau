@@ -39,4 +39,16 @@ Sur macOS ou Linux, utiliser `python3` à la place de `python` si nécessaire.
 
 Ouvrir [localhost:5000](http://127.0.0.1:5000/). Le script de préparation extrait la base SQLite et le logo depuis `site-HubEau.zip`. Les modules `controller/` organisent les routes, et `model/` sépare l’accès SQLite et l’appel HTTP.
 
+## Organisation du code
+
+| Chemin | Rôle |
+| --- | --- |
+| `app.py` | Création de l’application Flask et ouverture des pages principales. |
+| `controller/` | Routes de la carte, des filtres et du tableau d’analyses. |
+| `model/modeleCarte.py` | Requêtes SQLite pour retrouver les communes et leurs réseaux de distribution. |
+| `model/modeleTableau.py` | Appels à l’API Hub’Eau et préparation des résultats du tableau. |
+| `templates/` et `static/` | Pages HTML, carte et mise en forme de l’interface. |
+| `prepare_data.py` | Extraction de la base SQLite et du logo nécessaires au lancement. |
+| `site-HubEau.zip` | Archive contenant notamment la base SQLite et le logo du projet. |
+
 [Documentation de l’API Qualité de l’eau potable](https://hubeau.eaufrance.fr/page/api-qualite-eau-potable) · [Portfolio](https://kajan94.github.io/Portefolio/#hubeau)
