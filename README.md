@@ -14,7 +14,7 @@ Si l’API est indisponible, l’interface du tableau propose de réessayer. La 
 
 ## Parcours des données de la carte
 
-Le script `prepare_data.py` extrait la base SQLite de l’archive du projet. La sélection d’un département récupère les communes enregistrées dans SQLite. La sélection d’une commune affiche ses réseaux de distribution. Les mesures du tableau viennent de l’API Hub’Eau via un parcours séparé.
+La base SQLite `data/json_tres_potable.db` est directement incluse dans le dépôt. La sélection d’un département récupère les communes enregistrées dans SQLite. La sélection d’une commune affiche ses réseaux de distribution. Les mesures du tableau viennent de l’API Hub’Eau via un parcours séparé.
 
 ![Parcours illustré de la carte de réseaux avec des données fictives](docs/parcours-carte-reseaux.png)
 
@@ -31,13 +31,12 @@ Installer les bibliothèques et lancer l’application :
 
 ~~~sh
 python -m pip install -r requirements.txt
-python prepare_data.py
 python -m flask --app app run
 ~~~
 
 Sur macOS ou Linux, utiliser `python3` à la place de `python` si nécessaire.
 
-Ouvrir [localhost:5000](http://127.0.0.1:5000/). Le script de préparation extrait la base SQLite et le logo depuis `site-HubEau.zip`. Les modules `controller/` organisent les routes, et `model/` sépare l’accès SQLite et l’appel HTTP.
+Ouvrir [localhost:5000](http://127.0.0.1:5000/). La base SQLite et le logo sont déjà inclus dans le dépôt. Les modules `controller/` organisent les routes, et `model/` sépare l’accès SQLite et l’appel HTTP.
 
 ## Organisation du code
 
@@ -48,7 +47,6 @@ Ouvrir [localhost:5000](http://127.0.0.1:5000/). Le script de préparation extra
 | `model/modeleCarte.py` | Requêtes SQLite pour retrouver les communes et leurs réseaux de distribution. |
 | `model/modeleTableau.py` | Appels à l’API Hub’Eau et préparation des résultats du tableau. |
 | `templates/` et `static/` | Pages HTML, carte et mise en forme de l’interface. |
-| `prepare_data.py` | Extraction de la base SQLite et du logo nécessaires au lancement. |
-| `site-HubEau.zip` | Archive contenant notamment la base SQLite et le logo du projet. |
+| `data/json_tres_potable.db` | Base SQLite des communes et des réseaux de distribution, incluse dans le dépôt. |
 
 [Documentation de l’API Qualité de l’eau potable](https://hubeau.eaufrance.fr/page/api-qualite-eau-potable) · [Portfolio](https://kajan94.github.io/Portefolio/#hubeau)
