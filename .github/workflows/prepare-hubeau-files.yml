@@ -1,0 +1,104 @@
+name: Preparer les fichiers HubEau
+on:
+  push:
+    paths:
+      - '.github/workflows/prepare-hubeau-files.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: prepare-hubeau-files
+  cancel-in-progress: false
+jobs:
+  preparation:
+    if: github.repository == 'Kajan94/HubEau'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extraire et verifier les fichiers du projet
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import hashlib
+          import sqlite3
+          
+          root = Path.cwd()
+          pairs = {
+              "appli/data/json_tres_potable.db": Path("data/json_tres_potable.db"),
+              "appli/static/images/logo.png": Path("static/images/logo.png"),
+          }
+          with ZipFile("site-HubEau.zip") as archive:
+              assert archive.testzip() is None, "Archive endommagee"
+              for member, target in pairs.items():
+                  data = archive.read(member)
+                  assert len(data) < 100 * 1024 * 1024, "Fichier trop volumineux pour GitHub"
+                  if target.exists():
+                      assert target.read_bytes() == data, f"Un fichier different existe deja : {target}"
+                  target.parent.mkdir(parents=True, exist_ok=True)
+                  target.write_bytes(data)
+                  assert hashlib.sha256(target.read_bytes()).digest() == hashlib.sha256(data).digest()
+                  print(target, len(data), "octets")
+          
+          db = Path("data/json_tres_potable.db")
+          assert db.open("rb").read(16) == b"SQLite format 3\x00"
+          with sqlite3.connect(db.resolve().as_uri() + "?mode=ro", uri=True) as connection:
+              assert connection.execute("PRAGMA quick_check").fetchone()[0] == "ok"
+              tables = connection.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()
+              assert tables, "Base vide"
+              for (table,) in tables:
+                  quoted = '"' + table.replace('"', '""') + '"'
+                  print(table, connection.execute("SELECT COUNT(*) FROM " + quoted).fetchone()[0], "lignes")
+          assert Path("static/images/logo.png").open("rb").read(8) == b"\x89PNG\r\n\x1a\n"
+          
+          readme_path = Path("README.md")
+          readme = readme_path.read_text(encoding="utf-8")
+          changes = [
+              ("Le script `prepare_data.py` extrait la base SQLite de l’archive du projet.",
+               "La base SQLite `data/json_tres_potable.db` est directement incluse dans le dépôt."),
+              ("python prepare_data.py\n", ""),
+              ("Le script de préparation extrait la base SQLite et le logo depuis `site-HubEau.zip`.",
+               "La base SQLite et le logo sont déjà inclus dans le dépôt."),
+              ("| `prepare_data.py` | Extraction de la base SQLite et du logo nécessaires au lancement. |\n",
+               "| `data/json_tres_potable.db` | Base SQLite des communes et des réseaux de distribution, incluse dans le dépôt. |\n"),
+              ("| `site-HubEau.zip` | Archive contenant notamment la base SQLite et le logo du projet. |\n", ""),
+          ]
+          for old, new in changes:
+              assert old in readme, f"Passage du README introuvable : {old}"
+              readme = readme.replace(old, new, 1)
+          assert "prepare_data.py" not in readme and "site-HubEau.zip" not in readme
+          readme_path.write_text(readme, encoding="utf-8")
+          
+          ignore_path = Path(".gitignore")
+          ignore = ignore_path.read_text(encoding="utf-8").splitlines()
+          ignore_path.write_text("\n".join(line for line in ignore if line not in
+              {"data/json_tres_potable.db", "static/images/logo.png"}) + "\n", encoding="utf-8")
+          for source in root.rglob("*.py"):
+              if source.name == "prepare_data.py" or ".git" in source.parts:
+                  continue
+              text = source.read_text(encoding="utf-8")
+              assert "prepare_data" not in text and "site-HubEau.zip" not in text, str(source)
+          print("Base SQLite et logo verifies ; README et regles Git adaptes.")
+          PY
+      - name: Verifier le lancement de Flask
+        run: |
+          python -m pip install -r requirements.txt
+          python - <<'PY'
+          from app import app
+          client = app.test_client()
+          for url in ("/", "/carte"):
+              response = client.get(url)
+              assert response.status_code == 200, (url, response.status_code)
+              print(url, response.status_code)
+          PY
+      - name: Enregistrer les fichiers directement dans le depot
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR_ID+$GITHUB_ACTOR@users.noreply.github.com"
+          git add -- README.md .gitignore data/json_tres_potable.db static/images/logo.png
+          git rm -- site-HubEau.zip prepare_data.py
+          git diff --cached --check
+          git diff --cached --stat
+          git commit -m "Inclure directement la base SQLite et le logo sans archive"
+          git push origin HEAD:main
